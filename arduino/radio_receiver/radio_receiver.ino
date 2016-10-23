@@ -16,13 +16,15 @@ void loop() {
   readRf();
 }
 
-void readRf(){
+void readRf(){ 
   byte messageLength = VW_MAX_MESSAGE_LEN; // the size of the message
   if (vw_get_message(message, &messageLength)) {
     for (int i = 0; i < messageLength; i++) {
       messageChr[i] = message[i];
     }
     messageChr[messageLength] = 0;
+    Serial.print(millis());
+    Serial.print("\t");
     Serial.println(messageChr);
   } 
 }

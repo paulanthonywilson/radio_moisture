@@ -66,17 +66,8 @@ void setup()
 int sleepsLeftToRead = 0;
 void loop()
 {
-  toggleLed();
   doReadIfItIsTime();
   enterSleep();
-}
-
-void xloop(){
-  doReading();
-}
-
-void toggleLed(){
-  digitalWrite(ledPin, !digitalRead(ledPin));  
 }
 
 void doReadIfItIsTime(){
@@ -87,21 +78,31 @@ void doReadIfItIsTime(){
 }
 
 void doReading() {
+  digitalWrite(ledPin, HIGH);
   for(int i = 0; i < 5; i++) {
     transmitReading(analogRead(moisturePin));
   }
-  Serial.println("*****");
+  transmitReadingFinished();
   delay(10);
+  digitalWrite(ledPin, LOW);
 }
 
 void transmitReading(int reading){
   char message[50];
-  
   sprintf(message, "Moisture reading: %d", reading);
+  transmit(message);
+}
+
+void transmitReadingFinished(){
+  transmit("*******");
+}
+
+void transmit(char* message) {
   Serial.println(message);
   vw_send((uint8_t *)message, strlen(message));
-  vw_wait_tx();
-  
+  vw_wait_tx(); 
 }
+
+
 
 
