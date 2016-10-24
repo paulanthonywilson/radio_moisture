@@ -9,3 +9,5 @@ import_config "secret.exs"
 config :porcelain, driver: Porcelain.Driver.Basic
 
 config :radio_moisture_fw, :ping_mate, :"bob@10.0.0.13"
+
+config :logger, level: :info

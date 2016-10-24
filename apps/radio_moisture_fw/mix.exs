@@ -26,7 +26,7 @@ defmodule RadioMoistureFw.Mixfile do
   def applications(:prod), do: [:nerves_interim_wifi | general_apps]
   def applications(_), do: general_apps
 
-  defp general_apps, do: [:logger, :runtime_tools, :porcelain]
+  defp general_apps, do: [:logger, :runtime_tools, :porcelain, :rm_slack]
 
   def deps do
     [
@@ -34,6 +34,7 @@ defmodule RadioMoistureFw.Mixfile do
       {:nerves_interim_wifi, "~> 0.1.0", only: :prod},
       {:porcelain, ">= 0.0.0"},
       {:dummy_nerves, in_umbrella: true, only: [:dev, :test]},
+      {:rm_slack, in_umbrella: true},
     ]
   end
 
