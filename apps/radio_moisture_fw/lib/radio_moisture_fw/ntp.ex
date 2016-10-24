@@ -22,9 +22,13 @@ defmodule RadioMoistureFw.Ntp do
   defstruct time_set: false
 
   @name __MODULE__
+  @ntp_timeout  10_000
+
+  @ntp_server "time.euro.apple.com"
+  @ntp_server_char_list String.to_charlist(@ntp_server)
 
   if :prod == Mix.env do
-    @command "ntpd -n -q -p time.euro.apple.com"
+    @command "ntpd -n -q -p #{@ntp_server}"
   else
     @command "cat /dev/null"
   end
@@ -43,13 +47,12 @@ defmodule RadioMoistureFw.Ntp do
 
   ## Callbacks
   def init(_) do
-    synced = do_sync
-    schedule_next_sync(synced)
+    schedule_next_sync(false)
     {:ok, %__MODULE__{}}
   end
 
   def handle_info(:sync_the_time, state) do
-    success = do_sync
+    success = try_sync
     schedule_next_sync(success)
 
     {:noreply, %{state | time_set: success}}
@@ -63,15 +66,33 @@ defmodule RadioMoistureFw.Ntp do
     Process.send_after(self, :sync_the_time, next_sync_time(last_sync_successful))
   end
 
-  defp do_sync do
-    case Porcelain.shell(@command) do
-      %Result{status: 0} ->
-        Logger.info "Successfully set the time over with NTP"
-        true
-      %Result{out: out, status: status} ->
-        Logger.error "Failed to set the time with NTP:\n#{out}\n#{status |> inspect}"
+  defp try_sync do
+    case :inet.gethostbyname(@ntp_server_char_list) do
+      {:error, err}  ->
+        Logger.error "Failed NTP, resolving #{@ntp_server}: #{err}"
         false
+      _ -> do_sync
     end
+  end
+
+  defp do_sync do
+    ntp_proc = Porcelain.spawn_shell(@command)
+    result = case Porcelain.Process.await(ntp_proc, @ntp_timeout) do
+               {:ok, %Result{status: 0}} ->
+                 Logger.info "Successfully set the time over with NTP"
+                 true
+               {:ok, %Result{out: out, status: status}} ->
+                 Logger.error "Failed to set the time with NTP:\n#{out}\n#{status |> inspect}"
+                 false
+               {:error, :timeout} ->
+                 Logger.error "Timed out setting the time with NTP."
+                 false
+               err ->
+                 Logger.error "Unexpected Porcelain result from setting the time with NTP: #{err |> inspect}"
+                 false
+             end
+    Porcelain.Process.stop(ntp_proc)
+    result
   end
 
   defp next_sync_time(_last_sync_successful = true), do: :timer.minutes(30)
