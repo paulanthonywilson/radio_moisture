@@ -9,6 +9,7 @@ void setup() {
  
   vw_setup(2000);
   vw_rx_start();
+  Serial.println("Ready");
 
 }
 

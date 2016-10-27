@@ -14,7 +14,8 @@
 #include <avr/wdt.h>
 
 const int sleepSeconds = 9;
-const int readIntervalSeconds = 9;
+//const int readIntervalSeconds = 9;
+const int readIntervalSeconds = 60 * 60;
 const int readIntervalSleepCycles = readIntervalSeconds / sleepSeconds;
 
 const int ledPin = 13;

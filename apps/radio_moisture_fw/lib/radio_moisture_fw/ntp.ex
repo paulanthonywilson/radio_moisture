@@ -69,7 +69,7 @@ defmodule RadioMoistureFw.Ntp do
   defp try_sync do
     case :inet.gethostbyname(@ntp_server_char_list) do
       {:error, err}  ->
-        Logger.error "Failed NTP, resolving #{@ntp_server}: #{err}"
+        Logger.error "Failed NTP, resolving #{@ntp_server}: #{inspect(err)}"
         false
       _ -> do_sync
     end

@@ -14,7 +14,6 @@ defmodule RmSlack.Bot do
     GenServer.cast(@name, {:send_message, message})
   end
 
-
   def handle_cast({:send_message, message}, state) do
     say self, @channel, message
     {:noreply, state}
